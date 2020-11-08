@@ -19,16 +19,14 @@ SetKeyDelay, 75
 mapDesktopsFromRegistry()
 OutputDebug, [loading] desktops: %DesktopCount% current: %CurrentDesktop%
 
-#Include %A_ScriptDir%\user_config.ahk
+#Include %A_LineFile%\..\user_config.ahk
 return
 
-;
+
 ; This function examines the registry to build an accurate list of the current virtual desktops and which one we're currently on.
 ; Current desktop UUID appears to be in HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\SessionInfo\1\VirtualDesktops
 ; List of desktops appears to be in HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VirtualDesktops
-;
-mapDesktopsFromRegistry() 
-{
+mapDesktopsFromRegistry() {
     global CurrentDesktop, DesktopCount
 
     ; Get the current desktop UUID. Length should be 32 always, but there's no guarantee this couldn't change in a later Windows release so we check.
@@ -70,11 +68,8 @@ mapDesktopsFromRegistry()
     }
 }
 
-;
 ; This functions finds out ID of current session.
-;
-getSessionId()
-{
+getSessionId() {
     ProcessId := DllCall("GetCurrentProcessId", "UInt")
     if ErrorLevel {
         OutputDebug, Error getting current process id: %ErrorLevel%
@@ -91,8 +86,8 @@ getSessionId()
     return SessionId
 }
 
-_switchDesktopToTarget(targetDesktop)
-{
+; Magic function #1
+_switchDesktopToTarget(targetDesktop) {
     ; Globals variables should have been updated via updateGlobalVariables() prior to entering this function
     global CurrentDesktop, DesktopCount, LastOpenedDesktop
 
@@ -122,43 +117,115 @@ _switchDesktopToTarget(targetDesktop)
     }
 
     ; Makes the WinActivate fix less intrusive
-    Sleep, 50
+    ; Sleep, 50
     focusTheForemostWindow(targetDesktop)
+
+    ; Show Current Desktop
+    showCurrent()
 }
 
-updateGlobalVariables() 
-{
+; Magic funciton #2
+updateGlobalVariables() {
     ; Re-generate the list of desktops and where we fit in that. We do this because
     ; the user may have switched desktops via some other means than the script.
     mapDesktopsFromRegistry()
 }
 
-switchDesktopByNumber(targetDesktop)
-{
+; This function switches the current desktop to a given target
+switchDesktopByNumber(targetDesktop) {
     global CurrentDesktop, DesktopCount
     updateGlobalVariables()
     _switchDesktopToTarget(targetDesktop)
+    ; showCurrent()
 }
 
-switchDesktopToLastOpened()
-{
+; This function switches to the last desktop and back
+switchDesktopToLast() {
     global CurrentDesktop, DesktopCount, LastOpenedDesktop
     updateGlobalVariables()
-    _switchDesktopToTarget(LastOpenedDesktop)
+    if (CurrentDesktop = DesktopCount)
+    {
+        switchDesktopByNumber(LastOpenedDesktop)
+    }
+    else
+    {   
+        switchDesktopByNumber(DesktopCount)
+    }
 }
 
-switchDesktopToRight()
-{
+; This function switches to the leftmost desktop
+switchDesktopToLeft() {
     global CurrentDesktop, DesktopCount
     updateGlobalVariables()
-    _switchDesktopToTarget(CurrentDesktop == DesktopCount ? 1 : CurrentDesktop + 1)
+    ; _switchDesktopToTarget(CurrentDesktop == 1 ? DesktopCount : CurrentDesktop - 1)
+    _switchDesktopToTarget(CurrentDesktop - 1)
+    ; showCurrent()
 }
 
-switchDesktopToLeft()
-{
+; This function switches to the rightmost desktop
+switchDesktopToRight() {
     global CurrentDesktop, DesktopCount
     updateGlobalVariables()
-    _switchDesktopToTarget(CurrentDesktop == 1 ? DesktopCount : CurrentDesktop - 1)
+    ; _switchDesktopToTarget(CurrentDesktop == DesktopCount ? 1 : CurrentDesktop + 1)
+    _switchDesktopToTarget(CurrentDesktop + 1)
+    ; showCurrent()
+}
+
+; This function moves the active window to a given target
+MoveCurrentWindowToDesktop(desktopNumber) {
+    WinGet, activeHwnd, ID, A
+    DllCall(MoveWindowToDesktopNumberProc, UInt, activeHwnd, UInt, desktopNumber - 1)
+}
+
+; This function moves the active window to the last desktop
+MoveCurrentWindowToLast() {
+    global DesktopCount
+    updateGlobalVariables()
+    MoveCurrentWindowToDesktop(DesktopCount)
+}
+
+; This function moves the active window to the leftmost desktop
+MoveCurrentWindowToLeft() {
+    global CurrentDesktop, DesktopCount
+    updateGlobalVariables()
+    ; desktopNumber := CurrentDesktop == 1 ? DesktopCount : CurrentDesktop - 1
+    desktopNumber := CurrentDesktop - 1
+
+    WinGet, activeHwnd, ID, A
+    DllCall(MoveWindowToDesktopNumberProc, UInt, activeHwnd, UInt, desktopNumber - 1)
+}
+
+; This function moves the active window to the rightmost desktop
+MoveCurrentWindowToRight() {
+    global CurrentDesktop, DesktopCount
+    updateGlobalVariables()
+    ; desktopNumber := CurrentDesktop == DesktopCount ? 1 : CurrentDesktop + 1
+    desktopNumber := CurrentDesktop + 1
+
+    WinGet, activeHwnd, ID, A
+    DllCall(MoveWindowToDesktopNumberProc, UInt, activeHwnd, UInt, desktopNumber - 1)
+}
+
+; This function creates a new virtual desktop
+createVirtualDesktop() {
+    global CurrentDesktop, DesktopCount
+    CurrentDesktop := DesktopCount
+    Send, #^d
+    DesktopCount++
+    switchDesktopByNumber(CurrentDesktop)
+    OutputDebug, [create] desktops: %DesktopCount% current: %CurrentDesktop%
+}
+
+; This function deletes the current virtual desktop
+deleteVirtualDesktop() {
+    global CurrentDesktop, DesktopCount, LastOpenedDesktop
+    Send, #^{F4}
+    if (LastOpenedDesktop >= CurrentDesktop) {
+        LastOpenedDesktop--
+    }
+    DesktopCount--
+    CurrentDesktop--
+    OutputDebug, [delete] desktops: %DesktopCount% current: %CurrentDesktop%
 }
 
 focusTheForemostWindow(targetDesktop) {
@@ -173,8 +240,7 @@ isWindowNonMinimized(windowId) {
     return MMX != -1
 }
 
-getForemostWindowIdOnDesktop(n)
-{
+getForemostWindowIdOnDesktop(n) {
     n := n - 1 ; Desktops start at 0, while in script it's 1
 
     ; winIDList contains a list of windows IDs ordered from the top to the bottom for each desktop.
@@ -189,35 +255,16 @@ getForemostWindowIdOnDesktop(n)
     }
 }
 
-MoveCurrentWindowToDesktop(desktopNumber) {
-    WinGet, activeHwnd, ID, A
-    DllCall(MoveWindowToDesktopNumberProc, UInt, activeHwnd, UInt, desktopNumber - 1)
-    switchDesktopByNumber(desktopNumber)
-}
-
-;
-; This function creates a new virtual desktop and switches to it
-;
-createVirtualDesktop()
-{
-    global CurrentDesktop, DesktopCount
-    Send, #^d
-    DesktopCount++
-    CurrentDesktop := DesktopCount
-    OutputDebug, [create] desktops: %DesktopCount% current: %CurrentDesktop%
-}
-
-;
-; This function deletes the current virtual desktop
-;
-deleteVirtualDesktop()
-{
-    global CurrentDesktop, DesktopCount, LastOpenedDesktop
-    Send, #^{F4}
-    if (LastOpenedDesktop >= CurrentDesktop) {
-        LastOpenedDesktop--
-    }
-    DesktopCount--
-    CurrentDesktop--
-    OutputDebug, [delete] desktops: %DesktopCount% current: %CurrentDesktop%
+showCurrent() {
+    global CurrentDesktop
+    letters := ["Q", "W", "E", "A", "S", "D", "Z", "X", "C"]
+    currentLetter := letters[CurrentDesktop]
+    gui, New, , ""
+    gui, -border
+    gui, Font, s25, Verdana
+    gui, Add, Text, , [%currentLetter%]
+    gui, Show
+    sleep 450
+    gui, Destroy
+    return
 }
