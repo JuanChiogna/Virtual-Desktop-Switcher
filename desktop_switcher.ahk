@@ -257,6 +257,7 @@ getForemostWindowIdOnDesktop(n) {
 
 showCurrent() {
     global CurrentDesktop
+    updateGlobalVariables()
     letters := ["Q", "W", "E", "A", "S", "D", "Z", "X", "C"]
     currentLetter := letters[CurrentDesktop]
     gui, New, , ""
