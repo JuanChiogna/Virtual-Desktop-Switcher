@@ -107,6 +107,7 @@ _switchDesktopToTarget(targetDesktop) {
         Send {LWin down}{LCtrl down}{Right down}{LWin up}{LCtrl up}{Right up}
         CurrentDesktop++
         OutputDebug, [right] target: %targetDesktop% current: %CurrentDesktop%
+        sleep, 50
     }
 
     ; Go left until we reach the desktop we want
@@ -114,6 +115,7 @@ _switchDesktopToTarget(targetDesktop) {
         Send {LWin down}{LCtrl down}{Left down}{Lwin up}{LCtrl up}{Left up}
         CurrentDesktop--
         OutputDebug, [left] target: %targetDesktop% current: %CurrentDesktop%
+        sleep, 50
     }
 
     ; Makes the WinActivate fix less intrusive
