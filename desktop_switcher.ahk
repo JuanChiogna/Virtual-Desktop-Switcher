@@ -255,6 +255,7 @@ getForemostWindowIdOnDesktop(n) {
     }
 }
 
+; This function shows a GUI displaying current virtual desktop
 showCurrent() {
     global CurrentDesktop
     updateGlobalVariables()
