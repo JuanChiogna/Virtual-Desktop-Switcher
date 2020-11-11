@@ -102,12 +102,16 @@ _switchDesktopToTarget(targetDesktop) {
     ; Fixes the issue of active windows in intermediate desktops capturing the switch shortcut and therefore delaying or stopping the switching sequence. This also fixes the flashing window button after switching in the taskbar. More info: https://github.com/pmb6tz/windows-desktop-switcher/pull/19
     WinActivate, ahk_class Shell_TrayWnd
 
+    ; Variable delay
+    a := CurrentDesktop
+    b := targetDesktop
+
     ; Go right until we reach the desktop we want
     while(CurrentDesktop < targetDesktop) {
         Send {LWin down}{LCtrl down}{Right down}{LWin up}{LCtrl up}{Right up}
         CurrentDesktop++
         OutputDebug, [right] target: %targetDesktop% current: %CurrentDesktop%
-        sleep, 50
+        sleep, % 400/(b - a)
     }
 
     ; Go left until we reach the desktop we want
@@ -115,7 +119,7 @@ _switchDesktopToTarget(targetDesktop) {
         Send {LWin down}{LCtrl down}{Left down}{Lwin up}{LCtrl up}{Left up}
         CurrentDesktop--
         OutputDebug, [left] target: %targetDesktop% current: %CurrentDesktop%
-        sleep, 50
+        sleep, % 400/(a - b)
     }
 
     ; Makes the WinActivate fix less intrusive
@@ -138,13 +142,13 @@ switchDesktopByNumber(targetDesktop) {
     global CurrentDesktop, DesktopCount
     updateGlobalVariables()
     _switchDesktopToTarget(targetDesktop)
-    ; showCurrent()
 }
 
 ; This function switches to the last desktop and back
 switchDesktopToLast() {
     global CurrentDesktop, DesktopCount, LastOpenedDesktop
     updateGlobalVariables()
+    ; WinHide ahk_class Shell_TrayWnd ; Hide taskbar
     if (CurrentDesktop = DesktopCount)
     {
         switchDesktopByNumber(LastOpenedDesktop)
@@ -153,6 +157,7 @@ switchDesktopToLast() {
     {   
         switchDesktopByNumber(DesktopCount)
     }
+    ; WinShow ahk_class Shell_TrayWnd ; Show taskbar
 }
 
 ; This function switches to the leftmost desktop
@@ -265,10 +270,11 @@ showCurrent() {
     currentLetter := letters[CurrentDesktop]
     gui, New, , ""
     gui, -border
-    gui, Font, s25, Verdana
+    gui, Font, s30, Verdana
     gui, Add, Text, , [%currentLetter%]
-    gui, Show
-    sleep 450
-    gui, Destroy
+    gui, Show, x0 y0, Desktop Switcher
+    sleep, 500
+    sleep, 500
+    gui, Hide
     return
 }
