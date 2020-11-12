@@ -13,6 +13,7 @@ SetCapsLockState, AlwaysOff
 ; Left    -->  Leftmost virtual desktop
 ; Right   -->  Rightmost virtual desktop
 ; Tab     -->  Toggles between current and last virtual desktops
+; r       -->  Restarts the script
 ; ----------------------------------------------------------------------------------------------------
 
 ; Manages ctrl / ctrl + alt functionality
@@ -87,3 +88,6 @@ CapsLock & d::Switch(6)
 CapsLock & z::Switch(7)
 CapsLock & x::Switch(8)
 CapsLock & c::Switch(9)
+
+; Reload
+CapsLock & r::Reload
