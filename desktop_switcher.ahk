@@ -106,6 +106,9 @@ _switchDesktopToTarget(targetDesktop) {
     a := CurrentDesktop
     b := targetDesktop
 
+    ; Light efect while switching desktops
+    SetCapsLockState, AlwaysOn
+
     ; Go right until we reach the desktop we want
     while(CurrentDesktop < targetDesktop) {
         Send {LWin down}{LCtrl down}{Right down}{LWin up}{LCtrl up}{Right up}
@@ -121,6 +124,9 @@ _switchDesktopToTarget(targetDesktop) {
         OutputDebug, [left] target: %targetDesktop% current: %CurrentDesktop%
         sleep, % 400/(a - b)
     }
+
+    ; Light efect while switching desktops
+    SetCapsLockState, AlwaysOff
 
     ; Makes the WinActivate fix less intrusive
     ; Sleep, 50
