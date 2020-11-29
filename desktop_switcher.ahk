@@ -20,8 +20,6 @@ mapDesktopsFromRegistry()
 OutputDebug, [loading] desktops: %DesktopCount% current: %CurrentDesktop%
 
 #Include %A_LineFile%\..\user_config.ahk
-return
-
 
 ; This function examines the registry to build an accurate list of the current virtual desktops and which one we're currently on.
 ; Current desktop UUID appears to be in HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\SessionInfo\1\VirtualDesktops
@@ -86,7 +84,6 @@ getSessionId() {
     return SessionId
 }
 
-; Magic function #1
 _switchDesktopToTarget(targetDesktop) {
     ; Globals variables should have been updated via updateGlobalVariables() prior to entering this function
     global CurrentDesktop, DesktopCount, LastOpenedDesktop
@@ -103,18 +100,18 @@ _switchDesktopToTarget(targetDesktop) {
     WinActivate, ahk_class Shell_TrayWnd
 
     ; Variable delay
-    a := CurrentDesktop
-    b := targetDesktop
+    d := 100
+    l = -0.3
 
-    ; Light efect while switching desktops
-    SetCapsLockState, AlwaysOn
+    ; Hide Windows taskbar
+    WinHide, ahk_class Shell_TrayWnd
 
     ; Go right until we reach the desktop we want
     while(CurrentDesktop < targetDesktop) {
         Send {LWin down}{LCtrl down}{Right down}{LWin up}{LCtrl up}{Right up}
         CurrentDesktop++
         OutputDebug, [right] target: %targetDesktop% current: %CurrentDesktop%
-        sleep, % 400/(b - a)
+        sleep, d*Exp(l*CurrentDesktop)
     }
 
     ; Go left until we reach the desktop we want
@@ -122,21 +119,15 @@ _switchDesktopToTarget(targetDesktop) {
         Send {LWin down}{LCtrl down}{Left down}{Lwin up}{LCtrl up}{Left up}
         CurrentDesktop--
         OutputDebug, [left] target: %targetDesktop% current: %CurrentDesktop%
-        sleep, % 400/(a - b)
+        sleep, d*Exp(l*CurrentDesktop)
     }
 
-    ; Light efect while switching desktops
-    SetCapsLockState, AlwaysOff
-
+    WinShow, ahk_class Shell_TrayWnd
+    
     ; Makes the WinActivate fix less intrusive
-    ; Sleep, 50
     focusTheForemostWindow(targetDesktop)
-
-    ; Show Current Desktop
-    showCurrent()
 }
 
-; Magic funciton #2
 updateGlobalVariables() {
     ; Re-generate the list of desktops and where we fit in that. We do this because
     ; the user may have switched desktops via some other means than the script.
@@ -152,20 +143,10 @@ switchDesktopByNumber(targetDesktop) {
 
 ; This function switches to the last desktop and back
 switchDesktopToLast() {
-    global CurrentDesktop, DesktopCount, LastOpenedDesktop
+    global LastOpenedDesktop
     updateGlobalVariables()
-    ; WinHide ahk_class Shell_TrayWnd ; Hide taskbar
-    if (CurrentDesktop = DesktopCount)
-    {
-        switchDesktopByNumber(LastOpenedDesktop)
-    }
-    else
-    {   
-        switchDesktopByNumber(DesktopCount)
-    }
-    ; WinShow ahk_class Shell_TrayWnd ; Show taskbar
+    switchDesktopByNumber(LastOpenedDesktop)
 }
-
 ; This function switches to the leftmost desktop
 switchDesktopToLeft() {
     global CurrentDesktop, DesktopCount
@@ -192,9 +173,9 @@ MoveCurrentWindowToDesktop(desktopNumber) {
 
 ; This function moves the active window to the last desktop
 MoveCurrentWindowToLast() {
-    global DesktopCount
+    global LastOpenedDesktop
     updateGlobalVariables()
-    MoveCurrentWindowToDesktop(DesktopCount)
+    MoveCurrentWindowToDesktop(LastOpenedDesktop)
 }
 
 ; This function moves the active window to the leftmost desktop
@@ -268,19 +249,12 @@ getForemostWindowIdOnDesktop(n) {
     }
 }
 
-; This function shows a GUI displaying current virtual desktop
+; This function shows a toast notification displaying the current virtual desktop
 showCurrent() {
     global CurrentDesktop
     updateGlobalVariables()
     letters := ["Q", "W", "E", "A", "S", "D", "Z", "X", "C"]
     currentLetter := letters[CurrentDesktop]
-    gui, New, , ""
-    gui, -border
-    gui, Font, s30, Verdana
-    gui, Add, Text, , [%currentLetter%]
-    gui, Show, x0 y0, Desktop Switcher
-    sleep, 500
-    sleep, 500
-    gui, Hide
-    return
+    gui, New, , "DesktopSwitcher"   
+    TrayTip, ,Current Desktop | %currentLetter%, 1
 }
