@@ -99,19 +99,15 @@ _switchDesktopToTarget(targetDesktop) {
     ; Fixes the issue of active windows in intermediate desktops capturing the switch shortcut and therefore delaying or stopping the switching sequence. This also fixes the flashing window button after switching in the taskbar. More info: https://github.com/pmb6tz/windows-desktop-switcher/pull/19
     WinActivate, ahk_class Shell_TrayWnd
 
-    ; Variable delay
-    d := 100
-    l = -0.3
-
-    ; Hide Windows taskbar
-    WinHide, ahk_class Shell_TrayWnd
+    ; Delay
+    d := 50
 
     ; Go right until we reach the desktop we want
     while(CurrentDesktop < targetDesktop) {
         Send {LWin down}{LCtrl down}{Right down}{LWin up}{LCtrl up}{Right up}
         CurrentDesktop++
         OutputDebug, [right] target: %targetDesktop% current: %CurrentDesktop%
-        sleep, d*Exp(l*CurrentDesktop)
+        sleep, d
     }
 
     ; Go left until we reach the desktop we want
@@ -119,10 +115,8 @@ _switchDesktopToTarget(targetDesktop) {
         Send {LWin down}{LCtrl down}{Left down}{Lwin up}{LCtrl up}{Left up}
         CurrentDesktop--
         OutputDebug, [left] target: %targetDesktop% current: %CurrentDesktop%
-        sleep, d*Exp(l*CurrentDesktop)
+        sleep, d
     }
-
-    WinShow, ahk_class Shell_TrayWnd
     
     ; Makes the WinActivate fix less intrusive
     focusTheForemostWindow(targetDesktop)
@@ -251,10 +245,11 @@ getForemostWindowIdOnDesktop(n) {
 
 ; This function shows a toast notification displaying the current virtual desktop
 showCurrent() {
-    global CurrentDesktop
+    global CurrentDesktop, lastOpenedDesktop
     updateGlobalVariables()
     letters := ["Q", "W", "E", "A", "S", "D", "Z", "X", "C"]
     currentLetter := letters[CurrentDesktop]
+    lastLetter := letters[lastOpenedDesktop]
     gui, New, , "DesktopSwitcher"   
-    TrayTip, ,Current Desktop | %currentLetter%, 1
-}
+    TrayTip, Current Desktop | %currentLetter%, Last Desktop [Tab] | %lastLetter%, 1
+}       
