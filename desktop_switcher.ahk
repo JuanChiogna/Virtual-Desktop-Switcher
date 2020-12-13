@@ -99,8 +99,7 @@ _switchDesktopToTarget(targetDesktop) {
     ; Fixes the issue of active windows in intermediate desktops capturing the switch shortcut and therefore delaying or stopping the switching sequence. This also fixes the flashing window button after switching in the taskbar. More info: https://github.com/pmb6tz/windows-desktop-switcher/pull/19
     WinActivate, ahk_class Shell_TrayWnd
 
-    ; Delay
-    d := 50
+    d := 30
 
     ; Go right until we reach the desktop we want
     while(CurrentDesktop < targetDesktop) {
@@ -117,7 +116,7 @@ _switchDesktopToTarget(targetDesktop) {
         OutputDebug, [left] target: %targetDesktop% current: %CurrentDesktop%
         sleep, d
     }
-    
+
     ; Makes the WinActivate fix less intrusive
     focusTheForemostWindow(targetDesktop)
 }
@@ -137,17 +136,20 @@ switchDesktopByNumber(targetDesktop) {
 
 ; This function switches to the last desktop and back
 switchDesktopToLast() {
-    global LastOpenedDesktop
+    global LastOpenedDesktop, CurrentDesktop
+    MostRecent := CurrentDesktop
     updateGlobalVariables()
+    if (MostRecent != CurrentDesktop) 
+        LastOpenedDesktop := MostRecent
     switchDesktopByNumber(LastOpenedDesktop)
 }
+
 ; This function switches to the leftmost desktop
 switchDesktopToLeft() {
     global CurrentDesktop, DesktopCount
     updateGlobalVariables()
     ; _switchDesktopToTarget(CurrentDesktop == 1 ? DesktopCount : CurrentDesktop - 1)
     _switchDesktopToTarget(CurrentDesktop - 1)
-    ; showCurrent()
 }
 
 ; This function switches to the rightmost desktop
@@ -156,7 +158,6 @@ switchDesktopToRight() {
     updateGlobalVariables()
     ; _switchDesktopToTarget(CurrentDesktop == DesktopCount ? 1 : CurrentDesktop + 1)
     _switchDesktopToTarget(CurrentDesktop + 1)
-    ; showCurrent()
 }
 
 ; This function moves the active window to a given target
@@ -251,5 +252,5 @@ showCurrent() {
     currentLetter := letters[CurrentDesktop]
     lastLetter := letters[lastOpenedDesktop]
     gui, New, , "DesktopSwitcher"   
-    TrayTip, Current Desktop | %currentLetter%, Last Desktop [Tab] | %lastLetter%, 1
-}       
+    TrayTip, Current Desktop | %currentLetter%, Last Desktop | %lastLetter%, 1
+}
