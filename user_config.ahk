@@ -88,6 +88,3 @@ else {
     switchDesktopToRight()
 }
 return
-
-^+left::switchDesktopToLeft()
-^+right::switchDesktopToRight()
