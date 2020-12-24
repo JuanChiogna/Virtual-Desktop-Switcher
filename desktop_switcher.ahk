@@ -99,23 +99,27 @@ _switchDesktopToTarget(targetDesktop) {
     ; Fixes the issue of active windows in intermediate desktops capturing the switch shortcut and therefore delaying or stopping the switching sequence. This also fixes the flashing window button after switching in the taskbar. More info: https://github.com/pmb6tz/windows-desktop-switcher/pull/19
     WinActivate, ahk_class Shell_TrayWnd
 
-    d := 30
+    ; Start switching
+    Send {LWin down}{LCtrl down}
 
     ; Go right until we reach the desktop we want
     while(CurrentDesktop < targetDesktop) {
-        Send {LWin down}{LCtrl down}{Right down}{LWin up}{LCtrl up}{Right up}
+        ; Send {LWin down}{LCtrl down}{Right down}{LWin up}{LCtrl up}{Right up}
+        Send {Right}
         CurrentDesktop++
         OutputDebug, [right] target: %targetDesktop% current: %CurrentDesktop%
-        sleep, d
     }
 
     ; Go left until we reach the desktop we want
     while(CurrentDesktop > targetDesktop) {
-        Send {LWin down}{LCtrl down}{Left down}{Lwin up}{LCtrl up}{Left up}
+        ; Send {LWin down}{LCtrl down}{Left down}{Lwin up}{LCtrl up}{Left up}
+        Send {Left}
         CurrentDesktop--
         OutputDebug, [left] target: %targetDesktop% current: %CurrentDesktop%
-        sleep, d
     }
+
+    ; Stop switching
+    Send {LWin up}{LCtrl up}
 
     ; Makes the WinActivate fix less intrusive
     focusTheForemostWindow(targetDesktop)
