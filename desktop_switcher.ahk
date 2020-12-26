@@ -122,7 +122,11 @@ _switchDesktopToTarget(targetDesktop) {
     Send {LWin up}{LCtrl up}
 
     ; Makes the WinActivate fix less intrusive
+    Sleep, 30
     focusTheForemostWindow(targetDesktop)
+
+    if (CurrentDesktop == DesktopCount)
+        Send, ^n
 }
 
 updateGlobalVariables() {
