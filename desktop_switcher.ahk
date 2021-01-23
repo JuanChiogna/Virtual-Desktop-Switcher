@@ -7,7 +7,8 @@ SendMode Input  ; Recommended for new scripts due to its superior speed and reli
 ; Globals
 DesktopCount := 2        ; Windows starts with 2 desktops at boot
 CurrentDesktop := 1      ; Desktop count is 1-indexed (Microsoft numbers them this way)
-LastOpenedDesktop := 1
+LastOpenedDesktop := 1   ; Most recent desktop 
+Msg := True              ; Whether or not Tray Tip messages are displayed
 
 ; DLL
 hVirtualDesktopAccessor := DllCall("LoadLibrary", "Str", A_ScriptDir . "\VirtualDesktopAccessor.dll", "Ptr")
@@ -122,11 +123,14 @@ _switchDesktopToTarget(targetDesktop) {
     Send {LWin up}{LCtrl up}
 
     ; Makes the WinActivate fix less intrusive
-    Sleep, 30
+    Sleep, 50
     focusTheForemostWindow(targetDesktop)
 
-    if (CurrentDesktop == DesktopCount)
+    WinGetTitle, CurrentWindow, A
+    if (CurrentWindow == "Microsoft To Do")
         Send, ^n
+
+    showCurrent()
 }
 
 updateGlobalVariables() {
@@ -209,7 +213,6 @@ createVirtualDesktop() {
     CurrentDesktop := DesktopCount
     Send, #^d
     DesktopCount++
-    switchDesktopByNumber(CurrentDesktop)
     OutputDebug, [create] desktops: %DesktopCount% current: %CurrentDesktop%
 }
 
@@ -253,12 +256,48 @@ getForemostWindowIdOnDesktop(n) {
 }
 
 ; This function shows a toast notification displaying the current virtual desktop
-showCurrent() {
-    global CurrentDesktop, lastOpenedDesktop
+showCurrent(force:=False) {
+    if % force {
+        global CurrentDesktop, lastOpenedDesktop, DesktopCount
+        updateGlobalVariables()  
+        HideTrayTip()
+        TrayTip, %CurrentDesktop% / %DesktopCount% | Current Desktop, %lastOpenedDesktop% / %DesktopCount% | Last Desktop [Tab]
+    }
+    else {
+        global Msg
+        if Msg {
+            sleep 50
+            global CurrentDesktop, lastOpenedDesktop, DesktopCount
+            updateGlobalVariables()  
+            HideTrayTip()
+            TrayTip, %CurrentDesktop% / %DesktopCount% | Current Desktop, %lastOpenedDesktop% / %DesktopCount% | Last Desktop [Tab]
+        }
+    }  
+}
+
+; Copy this function into your script to use it.
+HideTrayTip() {
+    TrayTip  ; Attempt to hide it the normal way.
+    if SubStr(A_OSVersion,1,3) = "10." {
+        Menu Tray, NoIcon
+        Menu Tray, Icon
+    }
+}
+
+LastNumber() {
+    global DesktopCount
     updateGlobalVariables()
-    letters := ["Q", "W", "E", "A", "S", "D", "Z", "X", "C"]
-    currentLetter := letters[CurrentDesktop]
-    lastLetter := letters[lastOpenedDesktop]
-    gui, New, , "DesktopSwitcher"   
-    TrayTip, Current Desktop | %currentLetter%, Last Desktop | %lastLetter%, 1
+    return DesktopCount
+}
+
+toggleMsg() {
+    global Msg
+    if % Msg {
+        Msg := False
+        TrayTip, Messages disabled, Press CapsLock + M to re enable
+    }
+    else {
+        Msg := True
+        TrayTip, Messages enabled, Press CapsLock + M to disable
+    }  
 }
