@@ -258,24 +258,25 @@ getForemostWindowIdOnDesktop(n) {
 ; This function shows a toast notification displaying the current virtual desktop
 showCurrent(force:=False) {
     if % force {
+        HideTrayTip()
         global CurrentDesktop, lastOpenedDesktop, DesktopCount
         updateGlobalVariables()  
-        HideTrayTip()
         TrayTip, %CurrentDesktop% / %DesktopCount% | Current Desktop, %lastOpenedDesktop% / %DesktopCount% | Last Desktop [Tab]
+        SetTimer, CloseTrayTip, -2000
     }
     else {
         global Msg
         if Msg {
-            sleep 50
-            global CurrentDesktop, lastOpenedDesktop, DesktopCount
-            updateGlobalVariables()  
             HideTrayTip()
+            global CurrentDesktop, lastOpenedDesktop, DesktopCount
+            updateGlobalVariables()
             TrayTip, %CurrentDesktop% / %DesktopCount% | Current Desktop, %lastOpenedDesktop% / %DesktopCount% | Last Desktop [Tab]
+            SetTimer, CloseTrayTip, -2000
         }
     }  
 }
 
-; Copy this function into your script to use it.
+; Close current TrayTip message.
 HideTrayTip() {
     TrayTip  ; Attempt to hide it the normal way.
     if SubStr(A_OSVersion,1,3) = "10." {
@@ -283,6 +284,11 @@ HideTrayTip() {
         Menu Tray, Icon
     }
 }
+
+; Close current TrayTip message.
+CloseTrayTip:
+HideTrayTip()
+return
 
 LastNumber() {
     global DesktopCount
