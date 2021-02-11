@@ -10,20 +10,18 @@ SetCapsLockState, AlwaysOff
 ; CapsLock + shift + <key>  -->  Move all windows to desired virtual desktop, and switch to it
 
 ; LIST OF KEYS:
-; Left  -->  Switch to virtual desktop on the left
-; Right -->  Switch to virtual desktop on the right
-; Tab   -->  Toggles between current and last opened virtual desktops
+; Z / Left  -->  Switch to virtual desktop on the left
+; X / Right -->  Switch to virtual desktop on the right
+; C         -->  Quick Alt Tab
+; Tab       -->  Toggles between current and last opened virtual desktops
 
-; 0 / R --> Rightmost virtual desktop
-; 1 / Q --> Desktop 1
-; 2 / W --> Desktop 2
-; 3 / E --> Desktop 3
-; 4 / A --> Desktop 4
-; 5 / S --> Desktop 5
-; 6 / D --> Desktop 6
-; 7 / Z --> Desktop 7
-; 8 / X --> Desktop 8
-; 9 / C --> Desktop 9
+; Q     --> Desktop 1
+; W     --> Desktop 2
+; E     --> Desktop 3
+; A     --> Desktop 4
+; S     --> Desktop 5
+; D     --> Desktop 6
+; Space --> Desktop 7
 ; ----------------------------------------------------------------------------------------------------
 
 ; Show current virtual desktop
@@ -34,82 +32,23 @@ CapsLock & left::Switch("l")
 CapsLock & right::Switch("r")
 CapsLock & tab::Switch("t")
 
-CapsLock & Space::Send #s
 CapsLock & m::toggleMsg()
 
 ; Switch to desired virtual desktop
-CapsLock & 1::Switch(1)
-CapsLock & 2::Switch(2)
-CapsLock & 3::Switch(3)
-CapsLock & 4::Switch(4)
-CapsLock & 5::Switch(5)
-CapsLock & 6::Switch(6)
-CapsLock & 7::Switch(7)
-CapsLock & 8::Switch(8)
-CapsLock & 9::Switch(9)
-CapsLock & 0::Switch(0)
+CapsLock & q::Switch(1)
+CapsLock & w::Switch(2)
+CapsLock & e::Switch(3)
 
-CapsLock & q::Command(1)
-CapsLock & w::Command(2)
-CapsLock & e::Command(3)
-CapsLock & a::Command(4)
-CapsLock & s::Command(5)
-CapsLock & d::Command(6)
-CapsLock & z::Command(7)
-CapsLock & x::Command(8)
-CapsLock & c::Command(9)
-CapsLock & r::Command(0)
+CapsLock & a::Switch(4)
+CapsLock & s::Switch(5)
+CapsLock & d::Switch(6)
 
-; Manages win functionality
-Command(target) {
-    if GetKeyState("LWin") {
-        ; Q - Win Tab
-        if (target == 1) {
-            Send #{tab}
-        }
-        ; W - Alt Tab
-        else if (target == 2) {
-            Send w
-        }
-        ; E
-        else if (target == 3) {
-            Send e
-        }
-        ; A - Left
-        else if (target == 4) {
-            Send ^#{left}
-            showCurrent()
-        }
-        ; S - Right
-        else if (target == 5) {
-            Send ^#{right}
-            showCurrent()
-        }
-        ; D
-        else if (target == 6) {
-            Send d
-        }
-        ; Z
-        else if (target == 7) {
-            Send z
-        }
-        ; X
-        else if (target == 8) {
-            Send x
-        }
-        ; C
-        else if (target == 9) {
-            Send c
-        }
-        ; R
-        else if (target == 0) {
-            Send r
-        }
-    }
-    else {
-        Switch(target)
-    }
-}
+CapsLock & z::Switch("l")
+CapsLock & x::Switch("r")
+CapsLock & c::Send !{tab}
+
+CapsLock & Space::Switch(0)
+
 
 ; Manages ctrl / alt / shift functionality
 Switch(target) {

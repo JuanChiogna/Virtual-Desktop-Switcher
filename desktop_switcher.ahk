@@ -8,7 +8,7 @@ SendMode Input  ; Recommended for new scripts due to its superior speed and reli
 DesktopCount := 2        ; Windows starts with 2 desktops at boot
 CurrentDesktop := 1      ; Desktop count is 1-indexed (Microsoft numbers them this way)
 LastOpenedDesktop := 1   ; Most recent desktop 
-Msg := True              ; Whether or not Tray Tip messages are displayed
+Msg := False              ; Whether or not Tray Tip messages are displayed
 
 ; DLL
 hVirtualDesktopAccessor := DllCall("LoadLibrary", "Str", A_ScriptDir . "\VirtualDesktopAccessor.dll", "Ptr")
@@ -123,7 +123,7 @@ _switchDesktopToTarget(targetDesktop) {
     Send {LWin up}{LCtrl up}
 
     ; Makes the WinActivate fix less intrusive
-    Sleep, 50
+    Sleep, 100
     focusTheForemostWindow(targetDesktop)
 
     WinGetTitle, CurrentWindow, A
