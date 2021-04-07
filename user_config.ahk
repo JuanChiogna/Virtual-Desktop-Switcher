@@ -6,22 +6,27 @@ SetCapsLockState, AlwaysOff
 ; CapsLock                  -->  Show current virtual desktop
 ; CapsLock + <key>          -->  Switch to desired virtual desktop
 ; CapsLock + ctrl + <key>   -->  Move active window to desired virtual desktop
-; CapsLock + alt + <key>    -->  Move active window to desired virtual desktop, and switch to it
-; CapsLock + shift + <key>  -->  Move all windows to desired virtual desktop, and switch to it
+; CapsLock + shift + <key>    -->  Move active window to desired virtual desktop, and switch to it
+; CapsLock + alt + <key>  -->  Move all windows to desired virtual desktop, and switch to it
 
 ; LIST OF KEYS:
-; Z / Left  -->  Switch to virtual desktop on the left
-; X / Right -->  Switch to virtual desktop on the right
-; C         -->  Quick Alt Tab
+; A / Left  -->  Switch to virtual desktop on the left
+; S / Right -->  Switch to virtual desktop on the right
+; D         -->  Close current window
+; F         -->  Toogle always on top
 ; Tab       -->  Toggles between current and last opened virtual desktops
 
 ; Q     --> Desktop 1
 ; W     --> Desktop 2
 ; E     --> Desktop 3
-; A     --> Desktop 4
-; S     --> Desktop 5
-; D     --> Desktop 6
-; Space --> Desktop 7
+; R     --> Desktop 4
+
+; Z     --> Desktop 5
+; X     --> Desktop 6
+; C     --> Desktop 7
+; V     --> Desktop 8
+
+; Space --> Desktop 8
 ; ----------------------------------------------------------------------------------------------------
 
 ; Show current virtual desktop
@@ -38,21 +43,24 @@ CapsLock & m::toggleMsg()
 CapsLock & q::Switch(1)
 CapsLock & w::Switch(2)
 CapsLock & e::Switch(3)
+CapsLock & r::Switch(4)
 
-CapsLock & a::Switch(4)
-CapsLock & s::Switch(5)
-CapsLock & d::Switch(6)
+CapsLock & a::Switch("l")
+CapsLock & s::Switch("r")
+CapsLock & d::Send !{F4}
+CapsLock & f::Winset, Alwaysontop, Toggle, A
 
-CapsLock & z::Switch("l")
-CapsLock & x::Switch("r")
-CapsLock & c::Send !{tab}
+CapsLock & z::Switch(5)
+CapsLock & x::Switch(6)
+CapsLock & c::Switch(7)
+CapsLock & v::Switch(8)
 
 CapsLock & Space::Switch(0)
 
 
 ; Manages ctrl / alt / shift functionality
 Switch(target) {
-    if GetKeyState("Shift") {
+    if GetKeyState("Alt") {
         if (target == "t") {
             WinGet, List, List
             Loop % List {
@@ -92,9 +100,10 @@ Switch(target) {
                 WinActivate, % "ahk_id " List%A_Index%
                 MoveCurrentWindowToDesktop(target)
             }
+            switchDesktopByNumber(target)
         }
     }
-    else if GetKeyState("Alt") {
+    else if GetKeyState("Shift") {
         if (target == "t") {
             MoveCurrentWindowToLast()
             switchDesktopToLast()
