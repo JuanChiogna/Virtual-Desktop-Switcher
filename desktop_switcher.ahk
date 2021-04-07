@@ -90,10 +90,15 @@ _switchDesktopToTarget(targetDesktop) {
     global CurrentDesktop, DesktopCount, LastOpenedDesktop
 
     ; Don't attempt to switch to an invalid desktop
-    if (targetDesktop > DesktopCount || targetDesktop < 1 || targetDesktop == CurrentDesktop) {
+    ; if (targetDesktop > DesktopCount || targetDesktop < 1 || targetDesktop == CurrentDesktop) {
+    if (targetDesktop > DesktopCount || targetDesktop < 1) {
         OutputDebug, [invalid] target: %targetDesktop% current: %CurrentDesktop%
         return
     }
+
+    ; Trying to switch to the current desktop takes you back to the last opened one.
+    else if (CurrentDesktop == targetDesktop)
+        targetDesktop := LastOpenedDesktop
 
     LastOpenedDesktop := CurrentDesktop
 
