@@ -3,64 +3,50 @@ SetCapsLockState, AlwaysOff
 
 ; ----------------------------------------------------------------------------------------------------
 ; GENERAL USE:
-; CapsLock                  -->  Show current virtual desktop
-; CapsLock + <key>          -->  Switch to desired virtual desktop
-; CapsLock + ctrl + <key>   -->  Move active window to desired virtual desktop
-; CapsLock + shift + <key>    -->  Move active window to desired virtual desktop, and switch to it
-; CapsLock + alt + <key>  -->  Move all windows to desired virtual desktop, and switch to it
+; CapsLock                       -->  Show current virtual desktop
+; CapsLock + <key>               -->  Switch to desired virtual desktop
+; CapsLock + ctrl + <key>        -->  Move active window to desired virtual desktop
+; CapsLock + alt  + <key>        -->  Move active window to desired virtual desktop, and switch to it
+; CapsLock + ctrl + alt + <key>  -->  Move all windows to desired virtual desktop, and switch to it
 
 ; LIST OF KEYS:
 ; A / Left  -->  Switch to virtual desktop on the left
 ; S / Right -->  Switch to virtual desktop on the right
-; D         -->  Close current window
-; F         -->  Toogle always on top
 ; Tab       -->  Toggles between current and last opened virtual desktops
 
 ; Q     --> Desktop 1
 ; W     --> Desktop 2
 ; E     --> Desktop 3
-; R     --> Desktop 4
 
-; Z     --> Desktop 5
-; X     --> Desktop 6
-; C     --> Desktop 7
-; V     --> Desktop 8
+; Z     --> Desktop 4
+; X     --> Desktop 5
+; C     --> Desktop 6
 
-; Space --> Desktop 8
+; 1     --> Desktop 7
+; 2     --> Desktop 8
+; 3     --> Desktop 9
 ; ----------------------------------------------------------------------------------------------------
 
-; Show current virtual desktop
-CapsLock::showCurrent(force:=True)
-
-; Left, Right, and Last
-CapsLock & left::Switch("l")
-CapsLock & right::Switch("r")
 CapsLock & tab::Switch("t")
 
-CapsLock & m::toggleMsg()
-
-; Switch to desired virtual desktop
 CapsLock & q::Switch(1)
 CapsLock & w::Switch(2)
 CapsLock & e::Switch(3)
-CapsLock & r::Switch(4)
 
 CapsLock & a::Switch("l")
 CapsLock & s::Switch("r")
-CapsLock & d::Send !{F4}
-CapsLock & f::Winset, Alwaysontop, Toggle, A
 
-CapsLock & z::Switch(5)
-CapsLock & x::Switch(6)
-CapsLock & c::Switch(7)
-CapsLock & v::Switch(8)
+CapsLock & z::Switch(4)
+CapsLock & x::Switch(5)
+CapsLock & c::Switch(6)
 
-CapsLock & Space::Switch(0)
-
+CapsLock & 1::Switch(7)
+CapsLock & 2::Switch(8)
+CapsLock & 3::Switch(9)
 
 ; Manages ctrl / alt / shift functionality
 Switch(target) {
-    if GetKeyState("Alt") {
+    if (GetKeyState("Control", "P") and GetKeyState("Alt", "P")) {
         if (target == "t") {
             WinGet, List, List
             Loop % List {
@@ -75,6 +61,7 @@ Switch(target) {
                 WinActivate % "ahk_id " List%A_Index%
                 MoveCurrentWindowToLeft()
             }
+            Sleep 10
             switchDesktopToLeft()
         }
         else if (target == "r") {
@@ -83,6 +70,7 @@ Switch(target) {
                 WinActivate % "ahk_id " List%A_Index%
                 MoveCurrentWindowToRight()
             }
+            Sleep 10
             switchDesktopToRight()
         }
         else if (target == 0) {
@@ -92,6 +80,7 @@ Switch(target) {
                 WinActivate % "ahk_id " List%A_Index%
                 MoveCurrentWindowToDesktop(DesktopCount)
             }
+            Sleep 10
             switchDesktopByNumber(DesktopCount)
         }     
         else {
@@ -100,10 +89,11 @@ Switch(target) {
                 WinActivate, % "ahk_id " List%A_Index%
                 MoveCurrentWindowToDesktop(target)
             }
+            Sleep 10
             switchDesktopByNumber(target)
         }
     }
-    else if GetKeyState("Shift") {
+    else if GetKeyState("Alt", "P") {
         if (target == "t") {
             MoveCurrentWindowToLast()
             switchDesktopToLast()
@@ -126,7 +116,7 @@ Switch(target) {
             switchDesktopByNumber(target)
         }
     }
-    else if GetKeyState("Control") {
+    else if GetKeyState("Control", "P") {
         if (target == "t") {
             MoveCurrentWindowToLast()
         }
