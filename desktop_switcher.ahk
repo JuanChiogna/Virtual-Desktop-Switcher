@@ -7,8 +7,7 @@ SendMode Input  ; Recommended for new scripts due to its superior speed and reli
 ; Globals
 DesktopCount := 2        ; Windows starts with 2 desktops at boot
 CurrentDesktop := 1      ; Desktop count is 1-indexed (Microsoft numbers them this way)
-LastOpenedDesktop := 1   ; Most recent desktop 
-Msg := False              ; Whether or not Tray Tip messages are displayed
+LastOpenedDesktop := 1   ; Most recent desktop
 
 ; DLL
 hVirtualDesktopAccessor := DllCall("LoadLibrary", "Str", A_ScriptDir . "\VirtualDesktopAccessor.dll", "Ptr")
@@ -128,14 +127,12 @@ _switchDesktopToTarget(targetDesktop) {
     Send {LWin up}{LCtrl up}
 
     ; Makes the WinActivate fix less intrusive
-    Sleep, 100
     focusTheForemostWindow(targetDesktop)
 
+    ;Special case for Microsoft To Do
     WinGetTitle, CurrentWindow, A
     if (CurrentWindow == "Microsoft To Do")
         Send, ^n
-
-    showCurrent()
 }
 
 updateGlobalVariables() {
@@ -233,7 +230,14 @@ deleteVirtualDesktop() {
     OutputDebug, [delete] desktops: %DesktopCount% current: %CurrentDesktop%
 }
 
-focusTheForemostWindow(targetDesktop) {
+focusTheForemostWindow(targetDesktop:="") {
+    if (targetDesktop == "") {
+        global CurrentDesktop
+        updateGlobalVariables()
+        targetDesktop := CurrentDesktop
+    }
+
+    sleep 10
     foremostWindowId := getForemostWindowIdOnDesktop(targetDesktop)
     if isWindowNonMinimized(foremostWindowId) {
         WinActivate, ahk_id %foremostWindowId%
@@ -260,55 +264,28 @@ getForemostWindowIdOnDesktop(n) {
     }
 }
 
-; This function shows a toast notification displaying the current virtual desktop
-showCurrent(force:=False) {
-    if % force {
-        HideTrayTip()
-        global CurrentDesktop, lastOpenedDesktop, DesktopCount
-        updateGlobalVariables()  
-        TrayTip, %CurrentDesktop% / %DesktopCount% | Current Desktop, %lastOpenedDesktop% / %DesktopCount% | Last Desktop [Tab]
-        SetTimer, CloseTrayTip, -2000
-    }
-    else {
-        global Msg
-        if Msg {
-            HideTrayTip()
-            global CurrentDesktop, lastOpenedDesktop, DesktopCount
-            updateGlobalVariables()
-            TrayTip, %CurrentDesktop% / %DesktopCount% | Current Desktop, %lastOpenedDesktop% / %DesktopCount% | Last Desktop [Tab]
-            SetTimer, CloseTrayTip, -2000
-        }
-    }  
+;GUI
+showCurrent() {
+    global CurrentDesktop, lastOpenedDesktop, DesktopCount
+    updateGlobalVariables()
+    gui, New,, Test
+    gui, -Caption
+    gui, +owner
+    Gui, Font, Segoe UI s16
+    ; gui, Add, Text, x25 y25, %CurrentDesktop% / %DesktopCount% | Current Desktop
+    ; gui, Add, Text, x25, %lastOpenedDesktop% / %DesktopCount% | Last Desktop [Tab]
+    gui, Add, Text, x25 y25, %CurrentDesktop%  | Current Desktop
+    gui, Add, Text, x25, %lastOpenedDesktop%  | Last Desktop [Tab]
+    gui, Show, w290 h115 x1558 y0, Test
 }
 
-; Close current TrayTip message.
-HideTrayTip() {
-    TrayTip  ; Attempt to hide it the normal way.
-    if SubStr(A_OSVersion,1,3) = "10." {
-        Menu Tray, NoIcon
-        Menu Tray, Icon
-    }
+hideCurrent() {
+    gui, Destroy
 }
 
-; Close current TrayTip message.
-CloseTrayTip:
-HideTrayTip()
-return
-
+;Returns last desktop number
 LastNumber() {
     global DesktopCount
     updateGlobalVariables()
     return DesktopCount
-}
-
-toggleMsg() {
-    global Msg
-    if % Msg {
-        Msg := False
-        TrayTip, Messages disabled, Press CapsLock + M to re enable
-    }
-    else {
-        Msg := True
-        TrayTip, Messages enabled, Press CapsLock + M to disable
-    }  
 }

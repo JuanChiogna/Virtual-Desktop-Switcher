@@ -12,6 +12,7 @@ SetCapsLockState, AlwaysOff
 ; LIST OF KEYS:
 ; A / Left  -->  Switch to virtual desktop on the left
 ; S / Right -->  Switch to virtual desktop on the right
+; D         -->  Show current desktop
 ; Tab       -->  Toggles between current and last opened virtual desktops
 
 ; Q     --> Desktop 1
@@ -26,6 +27,11 @@ SetCapsLockState, AlwaysOff
 ; 2     --> Desktop 8
 ; 3     --> Desktop 9
 ; ----------------------------------------------------------------------------------------------------
+CapsLock & d::
+showCurrent()
+KeyWait, d
+hideCurrent()
+return
 
 CapsLock & tab::Switch("t")
 
@@ -94,6 +100,7 @@ Switch(target) {
         }
     }
     else if GetKeyState("Alt", "P") {
+        focusTheForemostWindow()
         if (target == "t") {
             MoveCurrentWindowToLast()
             switchDesktopToLast()
@@ -117,6 +124,7 @@ Switch(target) {
         }
     }
     else if GetKeyState("Control", "P") {
+        focusTheForemostWindow()
         if (target == "t") {
             MoveCurrentWindowToLast()
         }
